@@ -1,5 +1,5 @@
 # global static config
-APP_NAME= "Greenlight"
+APP_NAME= "Steam"
 APP_HEADER_HEIGHT = 56 #28 or 56, depends on DPI settings and monitor
 APP_RESIZE_REQUIRED = False
 

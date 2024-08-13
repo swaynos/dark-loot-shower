@@ -1,0 +1,31 @@
+[tool.poetry]
+name = "dark-loot-shower"
+version = "0.1.0"
+description = "Dark Loot Shower is a powerful automation tool designed to enhance your Diablo 4 experience, streamlining gameplay and maximizing your loot collection efficiency. Dive into the dark world of Sanctuary and let the loot rain down!"
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = ">=3.10, <3.11"
+pyobjc = {version="^10.2", platform = "darwin"}
+pyobjc-framework-screencapturekit = {version="^10.2",platform = "darwin"}
+pyscreenshot = "^3.1"
+pillow = "^10.3.0"
+opencv-python = "^4.9.0.80"
+scikit-image = "^0.23.1"
+pylint = "^3.1.0"
+pynput = "^1.7.6"
+requests = "^2.31.0"
+python-xlib = "^0.33"
+aiohttp = "^3.9.5"
+aiofiles = "^23.2.1"
+tensorflow-metal = {markers = "sys_platform == \"darwin\" and platform_machine == \"arm64\"", version = "^1.1.0"}
+tensorflow-io-gcs-filesystem = "^0.37.1"
+tensorflow = "2.16.2"
+huggingface-hub = "^0.23.5"
+asynctest = "^0.13.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
