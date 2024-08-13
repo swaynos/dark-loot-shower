@@ -1,19 +1,12 @@
 import asyncio
 import json
 import logging
-from ollama_inference import infer_image_from_ollama
-import src.utilities.monitoring as monitoring
-from sys import platform
+import utilities.monitoring as monitoring
 
-from app_io import get_prompt
-from src.controllers.game_flow_controller import GameController
-from game_state import GameState, MenuState
-if platform == "darwin":
-    from src.utilities.macos_app import RunningApplication
-elif platform == "linux" or platform == "linux2":
-    from src.utilities.linux_app import RunningApplication
-from src.utilities.image import ImageWrapper
-from src.utilities.shared_thread_resources import exit_event
+from controllers.game_flow_controller import GameFlowController
+from utilities.macos_app import RunningApplication
+from utilities.image import ImageWrapper
+from utilities.shared_thread_resources import exit_event
 
 controller_input_thread_statistics = monitoring.Statistics()
 
@@ -26,7 +19,7 @@ def create_ongoing_action(coro):
     return asyncio.create_task(coro)
 
 # TODO: Check for active application before sending
-async def controller_input_handler(app: RunningApplication, game: GameController):
+async def controller_input_handler(app: RunningApplication, game: GameFlowController):
     """
     In this thread we will read input from a controller (a Playstation Controller, but could be any other type of controller) and perform actions based on that input.
     It uses the `controller` module to grab the latest input data for each button on the controller and performs actions based on those inputs.
@@ -37,9 +30,9 @@ async def controller_input_handler(app: RunningApplication, game: GameController
     # Moving the import to within the function ensures that the module is only imported when 
     # the function is called, which allows patching of these variables in tests.
     # `inferred_game_state` holds the most recent inferred game state
-    from src.utilities.shared_thread_resources import inferred_memory_collection, inferred_game_state
+    from utilities.shared_thread_resources import inferred_memory_collection, inferred_game_state
 
-    ongoing_action = None
+    ongoing_action = None # This will be used to store an io task that is currently running
 
     while(not exit_event.is_set()):
         logger.debug(f"Has looped {controller_input_thread_statistics.count} times. Elapsed time is {controller_input_thread_statistics.get_time()}")
@@ -47,28 +40,8 @@ async def controller_input_handler(app: RunningApplication, game: GameController
         try:
             current_game_state = await inferred_game_state.read_data()
             if current_game_state is not None:
-                if current_game_state['GameState'] == GameState.IN_MATCH.name:
-                    if ongoing_action is None:
-                        logger.info("Game is in match, starting spin_in_circles.")
-                        ongoing_action = create_ongoing_action(game.spin_in_circles(2))
-                elif current_game_state['GameState'] == GameState.IN_MENU.name:
-                    if ongoing_action is not None:
-                        logger.info("Game is in menu, stopping spin_in_circles.")
-                        try:
-                            if not ongoing_action.done():
-                                ongoing_action.cancel()  # This will stop the ongoing task
-                                await ongoing_action
-                        except asyncio.CancelledError:
-                            logger.info("spin_in_circles was cancelled.")
-                        ongoing_action = None
-                    if current_game_state['MenuState'] == MenuState.SQUAD_BATTLES_OPPONENT_SELECTION.name:
-                        logger.info(f"Game is at the {current_game_state['MenuState']}")
-                        game.squad_battles_tracker.play_match()
-                        await asyncio.sleep(1) # Sleep for 1s to allow the game to handle the input
-                    elif current_game_state['MenuState'] is not None:
-                        logger.info(f"Game is at the {current_game_state['MenuState']}. Tapping cross.")
-                        game.io.tap(game.io.Cross)
-                        await asyncio.sleep(.05) # Sleep for 50ms to allow the game to handle the input
+                # TODO: Do work
+                await asyncio.sleep(.05) # Sleep for 50ms to allow the game to handle the input
                 
             await asyncio.sleep(0)  # Yield control back to the event loop
         except Exception as argument:

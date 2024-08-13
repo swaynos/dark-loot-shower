@@ -1,6 +1,6 @@
 import asyncio
 import unittest
-from src.utilities.shared_thread_resources import SharedObject
+from utilities.shared_thread_resources import SharedObject
 
 class TestSharedObject(unittest.TestCase):
 

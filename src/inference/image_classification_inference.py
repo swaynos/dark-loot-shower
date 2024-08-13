@@ -4,8 +4,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from huggingface_hub import hf_hub_download
-
-import src.utilities.config as config
+import utilities.config as config
 
 logger = logging.getLogger(__name__)
 

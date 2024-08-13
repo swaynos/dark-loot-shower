@@ -2,7 +2,7 @@ import asyncio
 import time
 from typing import List
 
-from src.utilities.xbox_io import XboxIO
+from utilities.xbox_io import XboxIO
 
 class GameFlowController():
     def __init__(self):

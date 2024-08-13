@@ -7,7 +7,7 @@ from PIL.Image import Image as PILImage
 
 from skimage.metrics import structural_similarity as ssim
 
-import src.utilities.config as config
+import utilities.config as config
 
 image_format = "PNG"
 

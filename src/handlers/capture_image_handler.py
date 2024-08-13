@@ -3,13 +3,10 @@ import logging
 from sys import platform
 from time import time
 
-import src.utilities.config as config
-from src.utilities.image import ImageWrapper
-if platform == "darwin":
-    from src.utilities.macos_app import RunningApplication
-elif platform == "linux" or platform == "linux2":
-    from src.utilities.linux_app import RunningApplication
-import src.utilities.monitoring as monitoring
+import utilities.config as config
+from utilities.image import ImageWrapper
+from utilities.macos_app import RunningApplication
+import utilities.monitoring as monitoring
 
 capture_image_thread_statistics = monitoring.Statistics()
 
@@ -24,7 +21,7 @@ async def capture_image_handler(app: RunningApplication):
     # Import shared resources required for managing the lifecycle of the thread
     # `exit_event` is an event flag used to gracefully terminate the loop
     # `latest_screenshot` holds the most recent screenshot to be processed for inference
-    from src.utilities.shared_thread_resources import exit_event, latest_screenshot
+    from utilities.shared_thread_resources import exit_event, latest_screenshot
 
     while(not exit_event.is_set()):
         logger.debug(f"capture_image_thread: Has looped {capture_image_thread_statistics.count} times. Elapsed time is {capture_image_thread_statistics.get_time()}")

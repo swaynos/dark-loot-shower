@@ -1,4 +1,4 @@
-import src.utilities.config as config
+import utilities.config as config
 import logging
 import pyscreenshot as ImageGrab
 import Quartz
