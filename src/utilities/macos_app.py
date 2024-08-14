@@ -33,6 +33,7 @@ class RunningApplication():
         if (not self.app):
             raise ValueError("app must be set, try running find_app before calling is_app_active_frontmost")
         active_app = NSWorkspace.sharedWorkspace().frontmostApplication().localizedName()
+        logging.debug(f"Current active application: {active_app}")
         return self.app_name == active_app
 
     def find_app(self, appName):
