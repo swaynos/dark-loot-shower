@@ -1,11 +1,17 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-      {
-        "name": "Debug start.py",
-        "type": "debugpy",
-        "request": "launch",
-        "program": "${workspaceFolder}/src/start.py",
-      }
-    ]
-  }
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug start.py",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/src/start.py",
+    },
+    {
+      "name": "Debug capture.py",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/src/capture.py",
+    }
+  ]
+}

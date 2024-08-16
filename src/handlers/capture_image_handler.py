@@ -1,6 +1,7 @@
 import asyncio
 import logging
-from sys import platform
+from dispatch import dispatch_async, dispatch_get_main_queue
+from concurrent.futures import Future
 from time import time
 
 import utilities.config as config
@@ -30,7 +31,8 @@ async def capture_image_handler(app: RunningApplication):
             app.activate()
             
             logger.debug("capture_image_thread: Grabbing a screenshot")
-
+            
+            # Capture the image on the main thread
             image = ImageWrapper(app.get_image_from_window())
             
             screenshot_filename = f"{config.SCREENSHOTS_DIR}new-screenshot{time()}.png"
@@ -43,7 +45,8 @@ async def capture_image_handler(app: RunningApplication):
                 await latest_screenshot.get()
 
             await latest_screenshot.put(image)
-
-            await asyncio.sleep(0)  # Yield control back to the event loop
+            
+            # Even if the value is 0, we need to yield control back to the event loop
+            await asyncio.sleep(config.CAPTURE_IMAGE_DELAY) 
         except Exception as argument:
             logger.error(argument)

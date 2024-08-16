@@ -1,7 +1,9 @@
 # global static config
-APP_NAME= "steamstreamingclient"
-APP_HEADER_HEIGHT = 56 #28 or 56, depends on DPI settings and monitor
+APP_NAME = "NVIDIA GeForce NOW" #"steamstreamingclient"
+APP_HEADER_HEIGHT = 0 #28 or 56, depends on DPI settings and monitor
 APP_RESIZE_REQUIRED = False
+
+CAPTURE_IMAGE_DELAY = 1 # Delay in seconds between loops of capture_image_handler
 
 SAVE_SCREENSHOTS = True
 SCREENSHOTS_DIR = "screenshots/"

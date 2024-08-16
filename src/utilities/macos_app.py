@@ -14,6 +14,44 @@ class Window:
         self.Y = int(0)
 
 class RunningApplication():
+    def _retrieve_window_list_from_quartz(self):
+        """
+        Queries the Quartz API to retrieve details of all currently visible windows, 
+        excluding desktop elements. The returned information includes various attributes 
+        such as size, position, owner application, and visibility status.
+
+        Returns:
+            list: A list of dictionaries, each representing a window with attributes 
+            such as 'kCGWindowOwnerPID' (the process ID of the window's owner) and 
+            'kCGWindowBounds' (the bounding rectangle of the window).
+        """
+        return Quartz.CGWindowListCopyWindowInfo(
+            Quartz.kCGWindowListOptionAll | Quartz.kCGWindowListExcludeDesktopElements,
+            Quartz.kCGNullWindowID
+        )
+
+    def _get_frontmost_app_name(self):
+        """
+        Retrieves the name of the currently active (frontmost) application window.
+
+        This method queries the list of windows using the Quartz API to find the window that 
+        is currently at the topmost layer (layer level of 0). Typically, this window belongs 
+        to the application that is currently in focus, and the method returns the name of that 
+        application. If no such window is found, the method returns None.
+
+        Returns:
+            str: The name of the frontmost application if found; returns None if no window 
+            with a layer level of 0 is present or if an error occurs while retrieving the 
+            window information.
+        """
+        window_list = Quartz.CGWindowListCopyWindowInfo(
+            Quartz.kCGWindowListOptionOnScreenOnly | Quartz.kCGWindowListExcludeDesktopElements,
+            Quartz.kCGNullWindowID
+        )
+        for window in window_list:
+            if window['kCGWindowLayer'] == 0:
+                return window['kCGWindowOwnerName']
+            
     def __init__(self):
          self.app: NSRunningApplication = None
          self.app_name = None
@@ -32,7 +70,7 @@ class RunningApplication():
     def is_app_active(self) -> bool:
         if (not self.app):
             raise ValueError("app must be set, try running find_app before calling is_app_active_frontmost")
-        active_app = NSWorkspace.sharedWorkspace().frontmostApplication().localizedName()
+        active_app = self._get_frontmost_app_name()
         logging.debug(f"Current active application: {active_app}")
         return self.app_name == active_app
 
@@ -58,7 +96,7 @@ class RunningApplication():
                 _app = app
 
         self.app = _app
-        self.pid = _app.processIdentifier()
+        self.pid = _app.processIdentifier() if _app else None
         return _app
     
     def activate_app(self):
@@ -68,40 +106,47 @@ class RunningApplication():
         # app.isActive: Indicates whether the application is currently frontmost.
         if not (self.is_app_active()):
             logging.debug("{} is not active, attempting to activate.".format(config.APP_NAME))
-            activationResult = self.app.activateWithOptions_(NSApplicationActivateAllWindows | NSApplicationActivateIgnoringOtherApps)
-
+            activationResult = self.app.activateWithOptions_(1)
             if not (activationResult):
                 raise RuntimeError("macOS app activation failed")
 
+    # TODO: call get_window later in the lifecycle
     def get_window(self) -> Window: 
         if (not self.pid):
             raise ValueError("app/pid must be set, try running find_app before get_window")
         
+        logging.debug(f"Looking for window with pid: {self.pid}")
         # TODO: There is a bug if all windows from the application are minimized
         
         # Retrieve window information
-        window_list = Quartz.CGWindowListCopyWindowInfo(
-            Quartz.kCGWindowListOptionOnScreenOnly | Quartz.kCGWindowListExcludeDesktopElements,
-            Quartz.kCGNullWindowID
-        )
+        window_list = self._retrieve_window_list_from_quartz()
 
         matched_windows = []
 
+        logging.debug(matched_windows)
+        
         # Iterate through the window list and filter by the app's PID
         for window_info in window_list:
-            if window_info["kCGWindowOwnerPID"] == self.pid:
+            window_pid = window_info["kCGWindowOwnerPID"]
+            if window_pid == self.pid:
                 # Extract relevant window details (e.g., window ID, title, etc.)
                 window = Window()
                 window.Height = int(window_info["kCGWindowBounds"]["Height"])
                 window.Width = int(window_info["kCGWindowBounds"]["Width"])
                 window.X = int(window_info["kCGWindowBounds"]["X"])
                 window.Y = int(window_info["kCGWindowBounds"]["Y"])
-                matched_windows.append(window)
 
-        if (len(matched_windows) > 0):
+                # If any matched windows have non-sensical dimensions
+                # don't add them to the matched_windows list
+                if (window.Height > 270 and window.Width > 480):
+                    matched_windows.append(window)
+
+        matched_windows_len = len(matched_windows)
+        if (matched_windows_len> 0):
             
-            if (len(matched_windows) > 1):
-                logging.debug("More than one matched window was found. Returning the first window.")
+            if (matched_windows_len > 1):
+                logging.debug(f"More than one matched window was found, {matched_windows_len} total were found.") 
+                logging.info("Returning the first matched window.")
 
             self.window = matched_windows[0]
             return matched_windows[0]
@@ -118,7 +163,10 @@ class RunningApplication():
             A PIL Image object representing the screenshot of the given window.
         """
         if (not self.window):
-            raise ValueError("window must be set, try running get_window before get_image_from_window")
+            logging.warn("This object's window is not set, attempting to run get_window")
+            self.window = self.get_window()
+            if not self.window:
+                raise ValueError("Unable to find window.")
         
         deltaX = self.window.X + self.window.Width
         deltaY = self.window.Y + self.window.Height
@@ -130,6 +178,7 @@ class RunningApplication():
         cropped_img = img.crop((0, config.APP_HEADER_HEIGHT, img.width, img.height))
         
         # Resize the image to 540p resolution (960x540)
+        # TODO: Move to config
         if (config.APP_RESIZE_REQUIRED):
             resized_image = cropped_img.resize((960, 540))
             final_image = resized_image
