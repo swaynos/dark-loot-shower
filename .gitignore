@@ -164,6 +164,9 @@ cython_debug/
 # Screenshots being captured
 screenshots/
 
+# Event capturing
+/events*.csv
+
 # Ingore macOS .DS_Store
 .DS_Store
 
