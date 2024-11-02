@@ -89,6 +89,7 @@ class RunningApplication():
         apps = NSWorkspace.sharedWorkspace().runningApplications()
 
         # Iterate over the list of windows
+        logging.debug(f"Looking for app with name: {appName}.\nCurrent list of running applications:")
         for app in apps:
             # app.bundleIdentifier() can also be used
             logging.debug(f"{app.localizedName()} - {app.processIdentifier()}")
@@ -96,7 +97,13 @@ class RunningApplication():
                 _app = app
 
         self.app = _app
-        self.pid = _app.processIdentifier() if _app else None
+
+        if _app:
+            self.pid = _app.processIdentifier()
+        else:
+            logging.debug(f"No app found")
+            self.pid = None
+
         return _app
     
     def activate_app(self):
@@ -129,7 +136,7 @@ class RunningApplication():
         for window_info in window_list:
             window_pid = window_info["kCGWindowOwnerPID"]
             if window_pid == self.pid:
-                # Extract relevant window details (e.g., window ID, title, etc.)
+                # Extract relevant wwdindow details (e.g., window ID, title, etc.)
                 window = Window()
                 window.Height = int(window_info["kCGWindowBounds"]["Height"])
                 window.Width = int(window_info["kCGWindowBounds"]["Width"])
@@ -145,16 +152,31 @@ class RunningApplication():
         if (matched_windows_len> 0):
             
             if (matched_windows_len > 1):
-                logging.debug(f"More than one matched window was found, {matched_windows_len} total were found.") 
-                logging.info("Returning the first matched window.")
+                largest_dimension_value = 0
+                largest_window_index = None
+                logging.debug(f"More than one matched window was found, {matched_windows_len} total were found.\nWill return the largest window.") 
+                for i, window in enumerate(matched_windows):
+                    logging.debug(f"Window {i+1}\nPosition: {window.X}, {window.Y}\nSize: {window.Width}x{window.Height}")
+                    if (window.Width * window.Height) > largest_dimension_value:
+                        largest_window_index = i
+                        largest_dimension_value = window.Width * window.Height
+                if (largest_window_index is not None):
+                    self.window = matched_windows[largest_window_index]
+                else:
+                    # This error should never happen since we validate the window dimensions earlier
+                    raise RuntimeError("Could not find largest window")
+            else:
+                self.window = matched_windows[0]
+            
+            logging.debug(f"Matched window: {self.window}")
+            logging.debug(f"Window Position: {self.window.X}, {self.window.Y}")
+            logging.debug(f"Window Size: {self.window.Width}x{self.window.Height}")
 
-            self.window = matched_windows[0]
             return matched_windows[0]
-
 
     def get_image_from_window(self):
         """
-        Returns an image of the given window, with any unwanted elements removed and resized to 720p resolution (1280x720).
+        Returns an image of the given window, with any unwanted elements removed and resized to 540p resolution (960x540)).
         
         Args:
             window (NSWindow): The window object for which the image should be captured.
