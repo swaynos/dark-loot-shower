@@ -24,16 +24,17 @@ def on_press(key):
         event_logger.info(f'key_press,{key}')
 
 def on_release(key):
-    event_logger.info(f'key_release,{key}')
-    if key == keyboard.Key.esc:
-        return False
+    try:
+        event_logger.info(f'key_release,{key}')
+    except Exception as e:
+        event_logger.error(f'Error during key release: {str(e)}')
 
 def on_click(x, y, button, pressed):
-    action = 'pressed' if pressed else 'released'
-    event_logger.info(f'mouse_{action},{x},{y},{button}')
-    
-    if button == mouse.Button.right:
-        return False
+    try:
+        action = 'pressed' if pressed else 'released'
+        event_logger.info(f'mouse_{action},{x},{y},{button}')
+    except Exception as e:
+        event_logger.error(f'Error during mouse click: {str(e)}')
 
 # Start the keyboard listener
 keyboard_listener = keyboard.Listener(on_press=on_press, on_release=on_release)
