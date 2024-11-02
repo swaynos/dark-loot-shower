@@ -192,6 +192,9 @@ class RunningApplication():
         
         deltaX = self.window.X + self.window.Width
         deltaY = self.window.Y + self.window.Height
+
+        # TODO: mac screencapture should support windowid with the 'l' flag.
+        #   -l      <windowid> Captures the window with windowid.
         img = ImageGrab.grab(
             backend="mac_screencapture", 
             bbox =(self.window.X, self.window.Y, deltaX, deltaY)
@@ -200,7 +203,6 @@ class RunningApplication():
         cropped_img = img.crop((0, config.APP_HEADER_HEIGHT, img.width, img.height))
         
         # Resize the image to 540p resolution (960x540)
-        # TODO: Move to config
         if (config.APP_RESIZE_REQUIRED):
             resized_image = cropped_img.resize((960, 540))
             final_image = resized_image
