@@ -11,14 +11,16 @@ APP_NAME = os.getenv("APP_NAME", "Moonlight")
 # The exact value depends on DPI settings of the monitor
 APP_HEADER_HEIGHT = int(os.getenv("APP_HEADER_HEIGHT", 0))
 
-# Will the window be resized after capture
+# Flag - will the window be resized after capture
+# Default to false on the assumption CPU is more limited than storage performance.
+# TODO: Test this assumption on different hardware.
 APP_RESIZE_REQUIRED = os.getenv("APP_RESIZE_REQUIRED", "False").lower() == "true"
 
 # Delay in seconds between loops of capture_image_handler. This allows the user to throttle
 # the window focus and image capturing rate. Very useful for debugging.
 CAPTURE_IMAGE_DELAY = int(os.getenv("CAPTURE_IMAGE_DELAY", 1))
 
-# Will screenshots be saved
+# Flag - will screenshots be saved
 SAVE_SCREENSHOTS = os.getenv("SAVE_SCREENSHOTS", "True").lower() == "true"
 
 # Directory to save screenshots
